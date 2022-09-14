@@ -4,13 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           welford
+name:           welford-online-mean-variance
 version:        0.1.0.0
 synopsis:       Online computation of mean and variance using the Welford algorithm.
-description:    Please see the README on GitHub at <https://github.com/githubuser/welford#readme>
+description:    Please see the README on GitHub at <https://github.com/githubuser/welford-online-mean-variance#readme>
 category:       Statistics
-homepage:       https://github.com/schnecki/welford#readme
-bug-reports:    https://github.com/schnecki/welford/issues
+homepage:       https://github.com/schnecki/welford-online-mean-variance#readme
+bug-reports:    https://github.com/schnecki/welford-online-mean-variance/issues
 author:         Manuel Schneckenreither
 maintainer:     manuel.schnecki@gmail.com
 copyright:      2022 Manuel Schneckenreither
@@ -23,14 +23,14 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/schnecki/welford
+  location: https://github.com/schnecki/welford-online-mean-variance
 
 library
   exposed-modules:
       Lib
       Statistics.Sample.WelfordOnlineMeanVariance
   other-modules:
-      Paths_welford
+      Paths_welford_online_mean_variance
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
@@ -41,12 +41,12 @@ library
     , vector
   default-language: Haskell2010
 
-test-suite welford-test
+test-suite welford-online-mean-variance-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
       Statistics.Sample.WelfordOnlineTest
-      Paths_welford
+      Paths_welford_online_mean_variance
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -59,5 +59,5 @@ test-suite welford-test
     , tasty-discover
     , tasty-quickcheck
     , vector
-    , welford
+    , welford-online-mean-variance
   default-language: Haskell2010

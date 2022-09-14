@@ -1,6 +1,6 @@
-name:                welford
+name:                welford-online-mean-variance
 version:             0.1.0.0
-github:              "schnecki/welford"
+github:              "schnecki/welford-online-mean-variance"
 license:             BSD3
 author:              "Manuel Schneckenreither"
 maintainer:          "manuel.schnecki@gmail.com"
@@ -17,7 +17,7 @@ category:            Statistics
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/welford#readme>
+description:         Please see the README on GitHub at <https://github.com/githubuser/welford-online-mean-variance#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -40,7 +40,7 @@ library:
   source-dirs: src
 
 tests:
-  welford-test:
+  welford-online-mean-variance-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -48,7 +48,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - welford
+    - welford-online-mean-variance
     - tasty
     - tasty-discover
     - tasty-quickcheck

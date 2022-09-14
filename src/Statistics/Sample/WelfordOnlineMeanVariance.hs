@@ -14,8 +14,9 @@ module Statistics.Sample.WelfordOnlineMeanVariance
 
 import           Control.DeepSeq
 import           Data.Serialize
-import qualified Data.Vector         as VB
-import qualified Data.Vector.Unboxed as VU
+import qualified Data.Vector          as VB
+import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Unboxed  as VU
 import           GHC.Generics
 
 type Mean a = a
@@ -56,6 +57,16 @@ instance (WelfordOnline a) => WelfordOnline (VB.Vector a) where
   multiply      = VB.zipWith multiply
   {-# INLINE multiply #-}
   divideInt x i = VB.map (`divideInt` i) x
+  {-# INLINE divideInt #-}
+
+instance (WelfordOnline a, VS.Storable a) => WelfordOnline (VS.Vector a) where
+  plus          = VS.zipWith plus
+  {-# INLINE plus #-}
+  minus         = VS.zipWith minus
+  {-# INLINE minus #-}
+  multiply      = VS.zipWith multiply
+  {-# INLINE multiply #-}
+  divideInt x i = VS.map (`divideInt` i) x
   {-# INLINE divideInt #-}
 
 
