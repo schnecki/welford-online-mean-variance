@@ -1,5 +1,5 @@
 name:                welford-online-mean-variance
-version:             0.1.0.0
+version:             0.1.0.1
 github:              "schnecki/welford-online-mean-variance"
 license:             BSD3
 author:              "Manuel Schneckenreither"

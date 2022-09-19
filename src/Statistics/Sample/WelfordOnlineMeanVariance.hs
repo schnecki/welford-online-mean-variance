@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 module Statistics.Sample.WelfordOnlineMeanVariance
   ( WelfordExistingAggregate(..)
+  , WelfordOnline (..)
   , addValue
   , finalize
   , nextValue

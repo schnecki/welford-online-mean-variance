@@ -3,7 +3,6 @@ module Statistics.Sample.WelfordOnlineTest where
 import           Control.Monad
 import           Data.List                                   (foldl')
 import qualified Data.Vector                                 as VB
-import           Debug.Trace
 import           Test.Tasty.QuickCheck
 
 import           Statistics.Sample.WelfordOnlineMeanVariance
