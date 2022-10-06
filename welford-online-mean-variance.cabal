@@ -27,7 +27,6 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
       Statistics.Sample.WelfordOnlineMeanVariance
   other-modules:
       Paths_welford_online_mean_variance

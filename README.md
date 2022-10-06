@@ -8,7 +8,7 @@ Example
       let n = fromIntegral (length vals)
       mean = VB.sum vals / n
       var = VB.sum (VB.map (\x -> (x - mean) ^ 2) vals) / (n - 1)
-      (wMean, _, wVarSample) = finalize $ foldl' addValue (WelfordExistingAggregateEmpty) (VB.toList vals)
+      (wMean, _, wVarSample) = finalize $ foldl' addValue WelfordExistingAggregateEmpty (VB.toList vals)
       print (mean, var)
       print (wMean, wVarSample)
 

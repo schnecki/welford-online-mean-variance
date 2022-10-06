@@ -5,6 +5,7 @@ module Statistics.Sample.WelfordOnlineMeanVariance
   ( WelfordExistingAggregate(..)
   , WelfordOnline (..)
   , addValue
+  , addValues
   , finalize
   , nextValue
   , newWelfordAggregate
@@ -130,6 +131,9 @@ addValue WelfordExistingAggregateEmpty val =
       m2' = delta' `multiply` delta2'
    in WelfordExistingAggregate count' mean' m2'
 
+-- | Add multiple values to the current aggregate. This is `foldl addValue`.
+addValues :: (WelfordOnline a, Foldable f) => WelfordExistingAggregate a -> f a -> WelfordExistingAggregate a
+addValues = foldl addValue
 
 -- | Calculate mean, variance and sample variance from aggregate.
 finalize :: (WelfordOnline a) => WelfordExistingAggregate a -> (Mean a, Variance a, SampleVariance a)
@@ -143,26 +147,3 @@ nextValue :: (WelfordOnline a) => WelfordExistingAggregate a -> a -> (WelfordExi
 nextValue agg val =
   let agg' = addValue agg val
    in (agg', finalize agg')
-
-
--- # For a new value newValue, compute the new count, new mean, the new M2.
--- # mean accumulates the mean of the entire dataset
--- # M2 aggregates the squared distance from the mean
--- # count aggregates the number of samples seen so far
--- def update(existingAggregate, newValue):
---     (count, mean, M2) = existingAggregate
---     count' += 1
---     delta = newValue - mean
---     mean' += delta / count'
---     delta2 = newValue - mean'
---     M2' += delta * delta2
---     return (count', mean', M2')
-
--- # Retrieve the mean, variance and sample variance from an aggregate
--- def finalize(existingAggregate):
---     (count, mean, M2) = existingAggregate
---     if count < 2:
---         return float("nan")
---     else:
---         (mean, variance, sampleVariance) = (mean, M2 / count, M2 / (count - 1))
---         return (mean, variance, sampleVariance)
