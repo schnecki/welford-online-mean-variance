@@ -1,14 +1,12 @@
 module Statistics.Sample.WelfordOnlineTest where
 
 import           Control.Monad
+import           Control.Monad.IO.Class
 import           Data.List                                   (foldl')
 import qualified Data.Vector                                 as VB
 import           Test.Tasty.QuickCheck
 
 import           Statistics.Sample.WelfordOnlineMeanVariance
-
-main :: IO ()
-main = putStrLn "Test suite not yet implemented"
 
 
 -- | Recursively generate candles
@@ -50,3 +48,16 @@ prop_MeanAndVarianceVector = do
       ress = map mkRes vecs
   return $
     foldl1 (.&&.) $ map (\(eps, wMean, mean, wVarSample, var) -> epsEqWith eps wMean mean .&&. epsEqWith eps wVarSample var) ress
+
+
+prop_readme_example :: Int -> Gen Property
+prop_readme_example nr = do
+  vals <- generateNValues (abs nr + 2)
+  let n = fromIntegral (length vals)
+      mean = sum vals / n
+      var = sum (map (\x -> (x - mean) ^ 2) vals) / (n - 1)
+      (wMean, _, wVarSample) = finalize $ foldl' addValue WelfordExistingAggregateEmpty vals
+  -- print (mean, var)
+  -- print (wMean, wVarSample)
+      eps = min 0.01 $ max 0.001 (0.001 * mean)
+  return $ epsEqWith eps wMean mean .&&. epsEqWith eps wVarSample var

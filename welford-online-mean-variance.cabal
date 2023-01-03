@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:           welford-online-mean-variance
-version:        0.1.0.1
+version:        0.1.0.4
 synopsis:       Online computation of mean and variance using the Welford algorithm.
 description:    Please see the README on GitHub at <https://github.com/githubuser/welford-online-mean-variance#readme>
 category:       Statistics
@@ -13,7 +13,7 @@ homepage:       https://github.com/schnecki/welford-online-mean-variance#readme
 bug-reports:    https://github.com/schnecki/welford-online-mean-variance/issues
 author:         Manuel Schneckenreither
 maintainer:     manuel.schnecki@gmail.com
-copyright:      2022 Manuel Schneckenreither
+copyright:      2023 Manuel Schneckenreither
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple

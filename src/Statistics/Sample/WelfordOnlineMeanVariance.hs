@@ -1,20 +1,28 @@
+{-# OPTIONS_GHC -Wno-partial-fields #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
 module Statistics.Sample.WelfordOnlineMeanVariance
   ( WelfordExistingAggregate(..)
   , WelfordOnline (..)
+  , newWelfordAggregateDef
+  , newWelfordAggregate
+  , welfordCount
+  , mWelfordMean
+  , welfordMeanDef
   , addValue
   , addValues
+  , mFinalize
   , finalize
   , nextValue
-  , newWelfordAggregate
+  , isWelfordExistingAggregateEmpty
   , Mean
   , Variance
   , SampleVariance
   ) where
 
 import           Control.DeepSeq
+import           Data.Maybe           (fromMaybe)
 import           Data.Serialize
 import qualified Data.Vector          as VB
 import qualified Data.Vector.Storable as VS
@@ -28,18 +36,82 @@ type SampleVariance a = a
 
 -- | For the storage of required information.
 data WelfordExistingAggregate a
-  = WelfordExistingAggregateEmpty
+  = WelfordExistingAggregateEmpty -- ^ Emtpy aggregate. Needed as `a` can be of any type, which, hence, allows us to postpone determining `a` to when we receive the first value.
   | WelfordExistingAggregate
-      { welfordCount :: !Int
-      , welfordMean  :: !a
-      , welfordM2    :: !a
+      { welfordCountUnsafe :: !Int
+      , welfordMeanUnsafe  :: !a
+      , welfordM2Unsafe    :: !a
       }
   deriving (Eq, Show, Read, Generic, NFData, Serialize)
-
 
 -- | Create a new empty Aggreate for the calculation.
 newWelfordAggregate :: WelfordExistingAggregate a
 newWelfordAggregate = WelfordExistingAggregateEmpty
+
+-- | Create a new empty Aggreate by specifying an example `a` value. It is safe to use the `*Unsafe` record field selectors from `WelfordExistingAggregate a`, when creating the data structure using
+-- this fuction.
+newWelfordAggregateDef :: (WelfordOnline a) => a -> WelfordExistingAggregate a
+newWelfordAggregateDef a = WelfordExistingAggregate 0 (a `minus` a) (a `minus` a)
+
+-- | Check if it is aggregate is empty
+isWelfordExistingAggregateEmpty :: WelfordExistingAggregate a -> Bool
+isWelfordExistingAggregateEmpty WelfordExistingAggregateEmpty = True
+isWelfordExistingAggregateEmpty _                             = False
+
+-- | Get counter safely, returns Nothing if `WelfordExistingAggregateEmpty`.
+welfordCount :: WelfordExistingAggregate a -> Int
+welfordCount WelfordExistingAggregateEmpty    = 0
+welfordCount (WelfordExistingAggregate c _ _) = c
+
+-- | Get counter safely, returns Nothing if `WelfordExistingAggregateEmpty`.
+mWelfordMean :: WelfordExistingAggregate a -> Maybe a
+mWelfordMean WelfordExistingAggregateEmpty    = Nothing -- Cannot create value `a`
+mWelfordMean (WelfordExistingAggregate _ m _) = Just m
+
+-- | Get counter with specifying a default value.
+welfordMeanDef :: (WelfordOnline a) => a -> WelfordExistingAggregate a -> a
+welfordMeanDef a WelfordExistingAggregateEmpty    = a `minus` a
+welfordMeanDef _ (WelfordExistingAggregate _ m _) = m
+
+-- | Add one value to the current aggregate.
+addValue :: (WelfordOnline a) => WelfordExistingAggregate a -> a -> WelfordExistingAggregate a
+addValue (WelfordExistingAggregate count mean m2) val =
+  let count' = count + 1
+      delta = val `minus` mean
+      mean' = mean `plus` (delta `divideInt` count')
+      delta2 = val `minus` mean'
+      m2' = m2 `plus` (delta `multiply` delta2)
+   in WelfordExistingAggregate count' mean' m2'
+addValue WelfordExistingAggregateEmpty val =
+  let count' = 1
+      delta' = val
+      mean' = delta' `divideInt` count'
+      delta2' = val `minus` mean'
+      m2' = delta' `multiply` delta2'
+   in WelfordExistingAggregate count' mean' m2'
+
+-- | Add multiple values to the current aggregate. This is `foldl addValue`.
+addValues :: (WelfordOnline a, Foldable f) => WelfordExistingAggregate a -> f a -> WelfordExistingAggregate a
+addValues = foldl addValue
+
+-- | Calculate mean, variance and sample variance from aggregate. Calls `error` for `WelfordExistingAggregateEmpty`.
+finalize :: (WelfordOnline a) => WelfordExistingAggregate a -> (Mean a, Variance a, SampleVariance a)
+finalize = fromMaybe err . mFinalize
+  where err = error "Statistics.Sample.WelfordOnlineMeanVariance.finalize: Emtpy Welford Online Aggreate. Add data first!"
+
+-- | Calculate mean, variance and sample variance from aggregate. Safe function.
+mFinalize :: (WelfordOnline a) => WelfordExistingAggregate a -> Maybe (Mean a, Variance a, SampleVariance a)
+mFinalize (WelfordExistingAggregate count mean m2)
+  | count < 2 = Just (mean, m2, m2)
+  | otherwise = Just (mean, m2 `divideInt` count, m2 `divideInt` (count - 1))
+mFinalize WelfordExistingAggregateEmpty = Nothing
+
+
+-- | Add a new sample to the aggregate and compute mean and variances.
+nextValue :: (WelfordOnline a) => WelfordExistingAggregate a -> a -> (WelfordExistingAggregate a, (Mean a, Variance a, SampleVariance a))
+nextValue agg val =
+  let agg' = addValue agg val
+   in (agg', finalize agg')
 
 
 -- | Class for all data strucutres that can be used to computer the Welford approximation. For instance, this can be used to compute the Welford algorithm on a `Vector`s of `Fractional`, while only
@@ -112,38 +184,3 @@ instance WelfordOnline Rational where
   {-# INLINE multiply #-}
   divideInt x i = x / fromIntegral i
   {-# INLINE divideInt #-}
-
-
--- | Add one value to the current aggregate.
-addValue :: (WelfordOnline a) => WelfordExistingAggregate a -> a -> WelfordExistingAggregate a
-addValue (WelfordExistingAggregate count mean m2) val =
-  let count' = count + 1
-      delta = val `minus` mean
-      mean' = mean `plus` (delta `divideInt` count')
-      delta2 = val `minus` mean'
-      m2' = m2 `plus` (delta `multiply` delta2)
-   in WelfordExistingAggregate count' mean' m2'
-addValue WelfordExistingAggregateEmpty val =
-  let count' = 1
-      delta' = val
-      mean' = delta' `divideInt` count'
-      delta2' = val `minus` mean'
-      m2' = delta' `multiply` delta2'
-   in WelfordExistingAggregate count' mean' m2'
-
--- | Add multiple values to the current aggregate. This is `foldl addValue`.
-addValues :: (WelfordOnline a, Foldable f) => WelfordExistingAggregate a -> f a -> WelfordExistingAggregate a
-addValues = foldl addValue
-
--- | Calculate mean, variance and sample variance from aggregate.
-finalize :: (WelfordOnline a) => WelfordExistingAggregate a -> (Mean a, Variance a, SampleVariance a)
-finalize (WelfordExistingAggregate count mean m2)
-  | count < 2 = (mean, m2, m2)
-  | otherwise = (mean, m2 `divideInt` count, m2 `divideInt` (count - 1))
-finalize WelfordExistingAggregateEmpty = error "finalize: Emtpy Welford Online Aggreate. Add data first!"
-
--- | Add a new sample to the aggregate and compute mean and variances.
-nextValue :: (WelfordOnline a) => WelfordExistingAggregate a -> a -> (WelfordExistingAggregate a, (Mean a, Variance a, SampleVariance a))
-nextValue agg val =
-  let agg' = addValue agg val
-   in (agg', finalize agg')
