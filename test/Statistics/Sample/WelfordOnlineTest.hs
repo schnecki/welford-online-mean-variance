@@ -61,3 +61,12 @@ prop_readme_example nr = do
   -- print (wMean, wVarSample)
       eps = min 0.01 $ max 0.001 (0.001 * mean)
   return $ epsEqWith eps wMean mean .&&. epsEqWith eps wVarSample var
+
+
+prop_Normalise :: Gen Property
+prop_Normalise = do
+  vals <- sized $ \n -> VB.fromList <$> generateNValues (100 + 5 * n)
+  let wel = addValues WelfordExistingAggregateEmpty vals :: WelfordExistingAggregate Double
+  testVal <- arbitrary
+  return $ epsEqWith 0.002 testVal (denormaliseFromZeroMeanUnitVariance wel (normaliseToZeroMeanUnitVariance wel testVal))
+
