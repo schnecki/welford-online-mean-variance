@@ -291,7 +291,7 @@ normaliseToZeroMeanUnitVariance :: (WelfordOnline a) => WelfordExistingAggregate
 normaliseToZeroMeanUnitVariance WelfordExistingAggregateEmpty{} x = clipValue 3 x
 normaliseToZeroMeanUnitVariance wel x
   | welfordCountUnsafe wel < 100 = clipValue 3 $ (x `minus` mean) `divide` squareRootMax variance
-  | otherwise = resetIndices (x `minus` mean) `divide` squareRootMax variance
+  | otherwise = resetIndices $ (x `minus` mean) `divide` squareRootMax variance
   where
     resetIndices x' = replaceIndex x' (dis, x)
     dis = welfordNoNormalsiation wel
