@@ -36,6 +36,7 @@ library
   build-depends:
       base >=4.7 && <5
     , cereal
+    , cereal-vector
     , deepseq
     , vector
   default-language: Haskell2010
@@ -53,6 +54,7 @@ test-suite welford-online-mean-variance-test
       QuickCheck
     , base >=4.7 && <5
     , cereal
+    , cereal-vector
     , deepseq
     , tasty
     , tasty-discover

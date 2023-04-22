@@ -24,6 +24,7 @@ dependencies:
 - vector
 - deepseq
 - cereal
+- cereal-vector
 
 ghc-options:
 - -Wall
