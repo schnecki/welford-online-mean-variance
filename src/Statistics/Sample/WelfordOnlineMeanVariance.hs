@@ -6,7 +6,7 @@
 module Statistics.Sample.WelfordOnlineMeanVariance
   ( WelfordExistingAggregate(..)
   , WelfordOnline (..)
-  , welfordNoNormalsiation
+  , welfordNoNormalisation
   , newWelfordAggregateDef
   , newWelfordAggregate
   , welfordCount
@@ -88,9 +88,9 @@ isWelfordExistingAggregateEmpty WelfordExistingAggregateEmpty{} = True
 isWelfordExistingAggregateEmpty _                               = False
 
 -- | Indices for which the normalisation is disabled.
-welfordNoNormalsiation :: WelfordExistingAggregate a -> [Int]
-welfordNoNormalsiation (WelfordExistingAggregateEmpty xs)  = xs
-welfordNoNormalsiation (WelfordExistingAggregate xs _ _ _) = VB.toList xs
+welfordNoNormalisation :: WelfordExistingAggregate a -> [Int]
+welfordNoNormalisation (WelfordExistingAggregateEmpty xs)  = xs
+welfordNoNormalisation (WelfordExistingAggregate xs _ _ _) = VB.toList xs
 
 
 -- | Get counter.
@@ -316,7 +316,7 @@ normaliseToZeroMeanUnitVariance wel x
     resetIndices x'
       | null dis = x'
       | otherwise = replaceIndex x' (dis, x)
-    dis = welfordNoNormalsiation wel
+    dis = welfordNoNormalisation wel
     (mean, _, variance) = finalize wel
 
 
@@ -329,5 +329,5 @@ denormaliseFromZeroMeanUnitVariance wel x = resetIndices $ (x `multiply` squareR
     resetIndices x'
       | null dis = x'
       | otherwise = replaceIndex x' (dis, x)
-    dis = welfordNoNormalsiation wel
+    dis = welfordNoNormalisation wel
     (mean, _, variance) = finalize wel
