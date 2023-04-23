@@ -6,6 +6,7 @@
 module Statistics.Sample.WelfordOnlineMeanVariance
   ( WelfordExistingAggregate(..)
   , WelfordOnline (..)
+  , welfordNoNormalsiation
   , newWelfordAggregateDef
   , newWelfordAggregate
   , welfordCount
@@ -44,10 +45,10 @@ data WelfordExistingAggregate a
   = WelfordExistingAggregateEmpty [Int]
     -- ^ Emtpy aggregate. Needed as `a` can be of any type, which, hence, allows us to postpone determining `a` to when we receive the first value. Holds a list of indices for which the normalisation is disabled.
   | WelfordExistingAggregate
-      { welfordNoNormalisation :: !(VB.Vector Int) -- ^ Indices for which to disable normalisation
-      , welfordCountUnsafe     :: !Int
-      , welfordMeanUnsafe      :: !a
-      , welfordM2Unsafe        :: !a
+      { welfordNoNormalisation_ :: !(VB.Vector Int) -- ^ Indices for which to disable normalisation
+      , welfordCountUnsafe      :: !Int
+      , welfordMeanUnsafe       :: !a
+      , welfordM2Unsafe         :: !a
       }
   deriving (Eq, Show, Read, Generic, NFData)
 
