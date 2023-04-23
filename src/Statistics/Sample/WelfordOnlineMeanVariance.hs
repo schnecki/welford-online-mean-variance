@@ -24,6 +24,7 @@ module Statistics.Sample.WelfordOnlineMeanVariance
   , SampleVariance
   ) where
 
+import           Control.Applicative   ((<|>))
 import           Control.DeepSeq
 import           Data.Maybe            (fromMaybe)
 import           Data.Serialize
@@ -47,6 +48,24 @@ data WelfordExistingAggregate a
       , welfordCountUnsafe     :: !Int
       , welfordMeanUnsafe      :: !a
       , welfordM2Unsafe        :: !a
+      }
+  deriving (Eq, Show, Read, Generic, NFData)
+
+instance (Serialize a) => Serialize (WelfordExistingAggregate a) where
+  get = (WelfordExistingAggregateEmpty <$> get) <|>
+        (WelfordExistingAggregate <$> get <*> get <*> get <*> get ) <|>
+        (fromOld <$> get)
+    where fromOld WelfordExistingAggregateEmptyOld = WelfordExistingAggregateEmpty []
+          fromOld (WelfordExistingAggregateOld a b c) = WelfordExistingAggregate VB.empty a b c
+
+-- | For the storage of required information.
+data WelfordExistingAggregateOld a
+  = WelfordExistingAggregateEmptyOld
+    -- ^ Emtpy aggregate. Needed as `a` can be of any type, which, hence, allows us to postpone determining `a` to when we receive the first value. Holds a list of indices for which the normalisation is disabled.
+  | WelfordExistingAggregateOld
+      { welfordCountUnsafeOld :: !Int
+      , welfordMeanUnsafeOld  :: !a
+      , welfordM2UnsafeOld    :: !a
       }
   deriving (Eq, Show, Read, Generic, NFData, Serialize)
 
@@ -293,7 +312,9 @@ normaliseToZeroMeanUnitVariance wel x
   | welfordCountUnsafe wel < 100 = clipValue 3 $ (x `minus` mean) `divide` squareRootMax variance
   | otherwise = resetIndices $ (x `minus` mean) `divide` squareRootMax variance
   where
-    resetIndices x' = replaceIndex x' (dis, x)
+    resetIndices x'
+      | null dis = x'
+      | otherwise = replaceIndex x' (dis, x)
     dis = welfordNoNormalsiation wel
     (mean, _, variance) = finalize wel
 
@@ -304,6 +325,8 @@ denormaliseFromZeroMeanUnitVariance :: (WelfordOnline a) => WelfordExistingAggre
 denormaliseFromZeroMeanUnitVariance WelfordExistingAggregateEmpty{} x = x
 denormaliseFromZeroMeanUnitVariance wel x = resetIndices $ (x `multiply` squareRootMax variance) `plus` mean
   where
-    resetIndices x' = replaceIndex x' (dis, x)
+    resetIndices x'
+      | null dis = x'
+      | otherwise = replaceIndex x' (dis, x)
     dis = welfordNoNormalsiation wel
     (mean, _, variance) = finalize wel
