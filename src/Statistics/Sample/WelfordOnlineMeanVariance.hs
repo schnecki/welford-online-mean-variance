@@ -50,26 +50,7 @@ data WelfordExistingAggregate a
       , welfordMeanUnsafe       :: !a
       , welfordM2Unsafe         :: !a
       }
-  deriving (Eq, Show, Read, Generic, NFData)
-
-instance (Serialize a) => Serialize (WelfordExistingAggregate a) where
-  get = (WelfordExistingAggregateEmpty <$> get) <|>
-        (WelfordExistingAggregate <$> get <*> get <*> get <*> get ) <|>
-        (fromOld <$> get)
-    where fromOld WelfordExistingAggregateEmptyOld = WelfordExistingAggregateEmpty []
-          fromOld (WelfordExistingAggregateOld a b c) = WelfordExistingAggregate VB.empty a b c
-
--- | For the storage of required information.
-data WelfordExistingAggregateOld a
-  = WelfordExistingAggregateEmptyOld
-    -- ^ Emtpy aggregate. Needed as `a` can be of any type, which, hence, allows us to postpone determining `a` to when we receive the first value. Holds a list of indices for which the normalisation is disabled.
-  | WelfordExistingAggregateOld
-      { welfordCountUnsafeOld :: !Int
-      , welfordMeanUnsafeOld  :: !a
-      , welfordM2UnsafeOld    :: !a
-      }
   deriving (Eq, Show, Read, Generic, NFData, Serialize)
-
 
 -- | Create a new empty Aggreate for the calculation.
 newWelfordAggregate :: [Int] -> WelfordExistingAggregate a
