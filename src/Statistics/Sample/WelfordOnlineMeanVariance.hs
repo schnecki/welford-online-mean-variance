@@ -287,11 +287,11 @@ nextValue agg val =
 
 
 -- | Normalise the given input assuming the learned standard deviation with sample variance to zero mean
--- and unit variance. For the first 100 values the output is clipped to @(-3, 3)@.
+-- and unit variance. For the first 100 values the output is clipped to @(-0.5, 0.5)@.
 normaliseToZeroMeanUnitVariance :: (WelfordOnline a) => WelfordExistingAggregate a -> a -> a
-normaliseToZeroMeanUnitVariance WelfordExistingAggregateEmpty{} x = clipValue 3 x
+normaliseToZeroMeanUnitVariance WelfordExistingAggregateEmpty{} x = clipValue 0.5 x
 normaliseToZeroMeanUnitVariance wel x
-  | welfordCountUnsafe wel < 100 = clipValue 3 $ (x `minus` mean) `divide` squareRootMax variance
+  | welfordCountUnsafe wel < 100 = clipValue 0.5 $ (x `minus` mean) `divide` squareRootMax variance
   | otherwise = resetIndices $ (x `minus` mean) `divide` squareRootMax variance
   where
     resetIndices x'
