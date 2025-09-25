@@ -29,7 +29,7 @@ prop_MeanAndVariance = do
   let n = fromIntegral (length vals)
       mean = sum vals / n
       var = sum (map (\x -> (x - mean) ^ 2) vals) / (n - 1)
-      (wMean, _, wVarSample) = snd $ foldl' (nextValue . fst) (WelfordExistingAggregateEmpty, (0, 0, 0)) vals
+      (wMean, _, wVarSample) = snd $ foldl' (nextValue . fst) (WelfordExistingAggregateEmpty [], (0, 0, 0)) vals
       eps = min 0.01 $ max 0.001 (0.001 * mean)
   return $ epsEqWith eps wMean mean .&&. epsEqWith eps wVarSample var
 
@@ -42,7 +42,7 @@ prop_MeanAndVarianceVector = do
         let n = fromIntegral (VB.length vals)
             mean = VB.sum vals / n
             var = VB.sum (VB.map (\x -> (x - mean) ^ 2) vals) / (n - 1)
-            (wMean, _, wVarSample) = snd $ foldl' (nextValue . fst) (WelfordExistingAggregateEmpty, (0, 0, 0)) (VB.toList vals)
+            (wMean, _, wVarSample) = snd $ foldl' (nextValue . fst) (WelfordExistingAggregateEmpty [], (0, 0, 0)) (VB.toList vals)
             eps = min 0.01 $ max 0.001 (0.001 * mean)
         in (eps, wMean, mean, wVarSample, var)
       ress = map mkRes vecs
@@ -56,17 +56,18 @@ prop_readme_example nr = do
   let n = fromIntegral (length vals)
       mean = sum vals / n
       var = sum (map (\x -> (x - mean) ^ 2) vals) / (n - 1)
-      (wMean, _, wVarSample) = finalize $ foldl' addValue WelfordExistingAggregateEmpty vals
+      (wMean, _, wVarSample) = finalize $ foldl' addValue (WelfordExistingAggregateEmpty []) vals
+      eps = min 0.01 $ max 0.001 (0.001 * mean)
   -- print (mean, var)
   -- print (wMean, wVarSample)
-      eps = min 0.01 $ max 0.001 (0.001 * mean)
   return $ epsEqWith eps wMean mean .&&. epsEqWith eps wVarSample var
 
 
 prop_Normalise :: Gen Property
 prop_Normalise = do
-  vals <- sized $ \n -> VB.fromList <$> generateNValues (100 + 5 * n)
-  let wel = addValues WelfordExistingAggregateEmpty vals :: WelfordExistingAggregate Double
+  vals <- sized $ \n -> VB.fromList <$> generateNValues (500 + 5 * n)
+  let wel = addValues (WelfordExistingAggregateEmpty []) vals :: WelfordExistingAggregate Double
   testVal <- arbitrary
-  return $ epsEqWith 0.002 testVal (denormaliseFromZeroMeanUnitVariance wel (normaliseToZeroMeanUnitVariance wel testVal))
+  let count = welfordCount wel
+  return $ (count >= 500) ==> epsEqWith 0.002 testVal (denormaliseFromZeroMeanUnitVariance wel (normaliseToZeroMeanUnitVariance wel testVal))
 
