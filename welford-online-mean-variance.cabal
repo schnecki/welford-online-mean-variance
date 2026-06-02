@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -38,6 +38,7 @@ library
     , cereal
     , cereal-vector
     , deepseq
+    , safecopy
     , vector
   default-language: Haskell2010
 
@@ -56,6 +57,7 @@ test-suite welford-online-mean-variance-test
     , cereal
     , cereal-vector
     , deepseq
+    , safecopy
     , tasty
     , tasty-discover
     , tasty-quickcheck

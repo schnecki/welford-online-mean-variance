@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell   #-}
 module Statistics.Sample.WelfordOnlineMeanVariance
   ( WelfordExistingAggregate(..)
   , WelfordOnline (..)
@@ -25,9 +26,10 @@ module Statistics.Sample.WelfordOnlineMeanVariance
   , SampleVariance
   ) where
 
-import           Control.Applicative   ((<|>))
+-- import           Control.Applicative   ((<|>))
 import           Control.DeepSeq
 import           Data.Maybe            (fromMaybe)
+import           Data.SafeCopy
 import           Data.Serialize
 import qualified Data.Vector           as VB
 import qualified Data.Vector.Serialize ()
@@ -51,6 +53,7 @@ data WelfordExistingAggregate a
       , welfordM2Unsafe         :: !a
       }
   deriving (Eq, Show, Read, Generic, NFData, Serialize)
+deriveSafeCopy 0 'base ''WelfordExistingAggregate
 
 -- | Create a new empty Aggreate for the calculation.
 newWelfordAggregate :: [Int] -> WelfordExistingAggregate a
